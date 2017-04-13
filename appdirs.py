@@ -90,7 +90,7 @@ def user_data_dir(appname=None, appauthor=None, version=None, roaming=False):
         if appname:
             path = os.path.join(path, appname)
     elif system == 'os2knix':
-        path = os.path.join(os.getenv('HOME'), ".local/share"))
+        path = os.path.join(os.getenv('HOME'), ".local/share")
         if appname:
             path = os.path.join(path, appname)
     else:
