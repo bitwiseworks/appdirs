@@ -70,6 +70,7 @@ def user_data_dir(appname=None, appauthor=None, version=None, roaming=False):
         Win XP (roaming):       C:\Documents and Settings\<username>\Local Settings\Application Data\<AppAuthor>\<AppName>
         Win 7  (not roaming):   C:\Users\<username>\AppData\Local\<AppAuthor>\<AppName>
         Win 7  (roaming):       C:\Users\<username>\AppData\Roaming\<AppAuthor>\<AppName>
+        OS/2:                   %HOME%/<AppName>
 
     For Unix, we follow the XDG spec and support $XDG_DATA_HOME.
     That means, by default "~/.local/share/<AppName>".
@@ -86,6 +87,10 @@ def user_data_dir(appname=None, appauthor=None, version=None, roaming=False):
                 path = os.path.join(path, appname)
     elif system == 'darwin':
         path = os.path.expanduser('~/Library/Application Support/')
+        if appname:
+            path = os.path.join(path, appname)
+    elif system == 'os2knix':
+        path = os.path.join(os.getenv('HOME'), ".local/share"))
         if appname:
             path = os.path.join(path, appname)
     else:
@@ -123,6 +128,7 @@ def site_data_dir(appname=None, appauthor=None, version=None, multipath=False):
         Win XP:     C:\Documents and Settings\All Users\Application Data\<AppAuthor>\<AppName>
         Vista:      (Fail! "C:\ProgramData" is a hidden *system* directory on Vista.)
         Win 7:      C:\ProgramData\<AppAuthor>\<AppName>   # Hidden, but writeable on Win 7.
+        OS/2:       /@unixroot/usr/share/<AppName>
 
     For Unix, this is using the $XDG_DATA_DIRS[0] default.
 
@@ -139,6 +145,10 @@ def site_data_dir(appname=None, appauthor=None, version=None, multipath=False):
                 path = os.path.join(path, appname)
     elif system == 'darwin':
         path = os.path.expanduser('/Library/Application Support')
+        if appname:
+            path = os.path.join(path, appname)
+    elif system == 'os2knix':
+        path = '/@unixroot/usr/share'
         if appname:
             path = os.path.join(path, appname)
     else:
@@ -188,12 +198,17 @@ def user_config_dir(appname=None, appauthor=None, version=None, roaming=False):
         Mac OS X:               same as user_data_dir
         Unix:                   ~/.config/<AppName>     # or in $XDG_CONFIG_HOME, if defined
         Win *:                  same as user_data_dir
+        OS/2:                   %HOME%/.config/<AppName>
 
     For Unix, we follow the XDG spec and support $XDG_CONFIG_HOME.
     That means, by default "~/.config/<AppName>".
     """
     if system in ["win32", "darwin"]:
         path = user_data_dir(appname, appauthor, None, roaming)
+    elif system == 'os2knix':
+        path = os.path.join(os.getenv('HOME'), ".config")
+        if appname:
+            path = os.path.join(path, appname)
     else:
         path = os.getenv('XDG_CONFIG_HOME', os.path.expanduser("~/.config"))
         if appname:
@@ -228,6 +243,7 @@ def site_config_dir(appname=None, appauthor=None, version=None, multipath=False)
                     $XDG_CONFIG_DIRS
         Win *:      same as site_data_dir
         Vista:      (Fail! "C:\ProgramData" is a hidden *system* directory on Vista.)
+        OS/2:       /@unixroot/etc/<AppName>
 
     For Unix, this is using the $XDG_CONFIG_DIRS[0] default, if multipath=False
 
@@ -235,6 +251,12 @@ def site_config_dir(appname=None, appauthor=None, version=None, multipath=False)
     """
     if system in ["win32", "darwin"]:
         path = site_data_dir(appname, appauthor)
+        if appname and version:
+            path = os.path.join(path, version)
+    elif system == 'os2knix':
+        path = '/@unixroot/etc'
+        if appname:
+            path = os.path.join(path, appname)
         if appname and version:
             path = os.path.join(path, version)
     else:
@@ -277,6 +299,7 @@ def user_cache_dir(appname=None, appauthor=None, version=None, opinion=True):
         Unix:       ~/.cache/<AppName> (XDG default)
         Win XP:     C:\Documents and Settings\<username>\Local Settings\Application Data\<AppAuthor>\<AppName>\Cache
         Vista:      C:\Users\<username>\AppData\Local\<AppAuthor>\<AppName>\Cache
+        OS/2:       %HOME%/.cache/<AppName> (XDG default)
 
     On Windows the only suggestion in the MSDN docs is that local settings go in
     the `CSIDL_LOCAL_APPDATA` directory. This is identical to the non-roaming
@@ -300,6 +323,10 @@ def user_cache_dir(appname=None, appauthor=None, version=None, opinion=True):
                 path = os.path.join(path, "Cache")
     elif system == 'darwin':
         path = os.path.expanduser('~/Library/Caches')
+        if appname:
+            path = os.path.join(path, appname)
+    elif system == 'os2knix':
+        path = os.path.join(os.getenv('HOME'), ".cache")
         if appname:
             path = os.path.join(path, appname)
     else:
@@ -336,6 +363,7 @@ def user_state_dir(appname=None, appauthor=None, version=None, roaming=False):
         Mac OS X:  same as user_data_dir
         Unix:      ~/.local/state/<AppName>   # or in $XDG_STATE_HOME, if defined
         Win *:     same as user_data_dir
+        OS/2:      %HOME%/.local/state/<AppName>
 
     For Unix, we follow this Debian proposal <https://wiki.debian.org/XDGBaseDirectorySpecification#state>
     to extend the XDG spec and support $XDG_STATE_HOME.
@@ -344,6 +372,10 @@ def user_state_dir(appname=None, appauthor=None, version=None, roaming=False):
     """
     if system in ["win32", "darwin"]:
         path = user_data_dir(appname, appauthor, None, roaming)
+    elif system == 'os2knix':
+        path = os.path.join(os.getenv('HOME'), ".local/state")
+        if appname:
+            path = os.path.join(path, appname)
     else:
         path = os.getenv('XDG_STATE_HOME', os.path.expanduser("~/.local/state"))
         if appname:
@@ -376,6 +408,7 @@ def user_log_dir(appname=None, appauthor=None, version=None, opinion=True):
         Unix:       ~/.cache/<AppName>/log  # or under $XDG_CACHE_HOME if defined
         Win XP:     C:\Documents and Settings\<username>\Local Settings\Application Data\<AppAuthor>\<AppName>\Logs
         Vista:      C:\Users\<username>\AppData\Local\<AppAuthor>\<AppName>\Logs
+        OS/2:       /@unixroot/var/log/<AppName>
 
     On Windows the only suggestion in the MSDN docs is that local settings
     go in the `CSIDL_LOCAL_APPDATA` directory. (Note: I'm interested in
@@ -394,6 +427,10 @@ def user_log_dir(appname=None, appauthor=None, version=None, opinion=True):
         version = False
         if opinion:
             path = os.path.join(path, "Logs")
+    elif system == 'os2knix':
+        path = '/@unixroot/var/log'
+        if appname:
+            path = os.path.join(path, appname)
     else:
         path = user_cache_dir(appname, appauthor, version)
         version = False
